@@ -20,6 +20,7 @@
 #include "defines.h"
 #include "stm32f4xx.h"
 #include "USART.h"
+#include "delay.h"
 #include <string.h>
 #include <stdio.h>
 /**
@@ -41,13 +42,19 @@ USART_Handle_t usart2;
 
 int main(void)
 {
+	delay_Init();
 /*******************************************************/
+	//LED
 	RCC->AHB1ENR |= GPIOX_CLOCK(LED);
 	GPIOX_MODER(MODE_OUT,LED);
+	//BUTTON
+	RCC->AHB1ENR |= GPIOX_CLOCK(BUTTON);
+	GPIOX_MODER(MODE_DIGITAL_INPUT,BUTTON);
+	GPIOX_PUPDR(MODE_PU_NONE,BUTTON);
 /********************************************************/
 	USART2_GPIOConfig();
 	USART_Init(USART2, 115200);
-
+	//Configuracion de la interrupcion
 	usart2.pUSARTx = USART2;
 	USART_IRQInterruptConfig(USART2_IRQn, ENABLE);
 	USART_IRQPriorityConfig(USART2_IRQn, 1);
@@ -56,7 +63,12 @@ int main(void)
 
     /* Loop forever */
 	for(;;){
-
+		if(!(GPIOX_IDR(BUTTON))){
+			printf("1\r\n");		//si el botton se presiona
+		}else{
+			printf("0\r\n");		//si no se presiona el botton
+		}
+		delay_ms(50);				//muestreo cada 50ms
 	}
 }
 /**
